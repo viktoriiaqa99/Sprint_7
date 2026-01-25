@@ -21,4 +21,11 @@ public class OrderMethod extends BaseMethod {
                 .get(ORDER_URI)
                 .then().log().all();
     }
+
+    public ValidatableResponse cancelOrder(int track) {
+        return spec()
+                .when()
+                .put(ORDER_URI + "/cancel?track=" + track)
+                .then().log().all();
+    }
 }

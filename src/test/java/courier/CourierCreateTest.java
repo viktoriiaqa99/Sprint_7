@@ -6,6 +6,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.apache.http.HttpStatus.*;
 
 public class CourierCreateTest {
 
@@ -43,6 +44,13 @@ public class CourierCreateTest {
         createCourierWithoutLoginStep(courier);
     }
 
+    @Test
+    @Description("Нельзя создать курьера без пароля")
+    public void createCourierWithoutPassword() {
+        Courier courier = new Courier("login123", null, "Ivan");
+        createCourierWithoutPasswordStep(courier);
+    }
+
     @Step("Создать случайного курьера")
     public Courier createRandomCourier() {
         return CreatedCourier.randomCourier();
@@ -51,14 +59,14 @@ public class CourierCreateTest {
     @Step("Отправить запрос на создание курьера")
     public void createCourier(Courier courier) {
         courierMethod.created(courier)
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
     }
 
     @Step("Авторизоваться курьером")
     public void loginCourier(Courier courier) {
         courierId = courierMethod.login(courier)
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .extract()
                 .path("id");
     }
@@ -66,12 +74,18 @@ public class CourierCreateTest {
     @Step("Попытаться создать дубликат курьера")
     public void createDuplicate(Courier courier) {
         courierMethod.created(courier)
-                .statusCode(409);
+                .statusCode(SC_CONFLICT);
     }
 
     @Step("Попытаться создать курьера без логина")
     public void createCourierWithoutLoginStep(Courier courier) {
         courierMethod.created(courier)
-                .statusCode(400);
+                .statusCode(SC_BAD_REQUEST);
+    }
+
+    @Step("Попытаться создать курьера без пароля")
+    public void createCourierWithoutPasswordStep(Courier courier) {
+        courierMethod.created(courier)
+                .statusCode(SC_BAD_REQUEST);
     }
 }

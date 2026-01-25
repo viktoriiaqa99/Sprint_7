@@ -2,10 +2,12 @@ package order;
 
 import io.qameta.allure.Description;
 import io.qameta.allure.Step;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(Parameterized.class)
@@ -13,6 +15,7 @@ public class OrderCreateTest {
 
     OrderMethod orderMethod = new OrderMethod();
     private final String[] colors;
+    private int track;
 
     public OrderCreateTest(String[] colors) {
         this.colors = colors;
@@ -26,6 +29,13 @@ public class OrderCreateTest {
                 {new String[]{"BLACK", "GREY"}},
                 {null}
         };
+    }
+
+    @After
+    public void cancelOrder() {
+        if (track != 0) {
+            orderMethod.cancelOrder(track);
+        }
     }
 
     @Test
@@ -52,8 +62,10 @@ public class OrderCreateTest {
 
     @Step("Отправить запрос на создание заказа")
     public void sendCreateOrderRequest(Order order) {
-        orderMethod.orderCreate(order)
-                .statusCode(201)
-                .body("track", notNullValue());
+        track = orderMethod.orderCreate(order)
+                .statusCode(SC_CREATED)
+                .body("track", notNullValue())
+                .extract()
+                .path("track");
     }
 }
